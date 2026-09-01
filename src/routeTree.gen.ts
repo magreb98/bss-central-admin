@@ -9,50 +9,183 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/_admin'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminIndexRouteImport } from './routes/_admin/index'
+import { Route as AdminAdminUsersRouteImport } from './routes/_admin/admin-users'
+import { Route as AdminAuditLogsRouteImport } from './routes/_admin/audit-logs'
+import { Route as AdminTenantsIndexRouteImport } from './routes/_admin/tenants/index'
+import { Route as AdminTenantsIdRouteImport } from './routes/_admin/tenants/$id'
 
-const IndexRoute = IndexRouteImport.update({
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminUsersRoute = AdminAdminUsersRouteImport.update({
+  id: '/admin-users',
+  path: '/admin-users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
+  id: '/tenants/',
+  path: '/tenants/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTenantsIdRoute = AdminTenantsIdRouteImport.update({
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AdminIndexRoute
+  '/login': typeof LoginRoute
+  '/admin-users': typeof AdminAdminUsersRoute
+  '/audit-logs': typeof AdminAuditLogsRoute
+  '/tenants/$id': typeof AdminTenantsIdRoute
+  '/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin-users': typeof AdminAdminUsersRoute
+  '/audit-logs': typeof AdminAuditLogsRoute
+  '/': typeof AdminIndexRoute
+  '/tenants/$id': typeof AdminTenantsIdRoute
+  '/tenants': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_admin/admin-users': typeof AdminAdminUsersRoute
+  '/_admin/audit-logs': typeof AdminAuditLogsRoute
+  '/_admin/': typeof AdminIndexRoute
+  '/_admin/tenants/$id': typeof AdminTenantsIdRoute
+  '/_admin/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin-users'
+    | '/audit-logs'
+    | '/tenants/$id'
+    | '/tenants/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/login'
+    | '/admin-users'
+    | '/audit-logs'
+    | '/'
+    | '/tenants/$id'
+    | '/tenants'
+  id:
+    | '__root__'
+    | '/_admin'
+    | '/login'
+    | '/_admin/admin-users'
+    | '/_admin/audit-logs'
+    | '/_admin/'
+    | '/_admin/tenants/$id'
+    | '/_admin/tenants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/': {
+      id: '/_admin/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin-users': {
+      id: '/_admin/admin-users'
+      path: '/admin-users'
+      fullPath: '/admin-users'
+      preLoaderRoute: typeof AdminAdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/audit-logs': {
+      id: '/_admin/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/audit-logs'
+      preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/tenants/': {
+      id: '/_admin/tenants/'
+      path: '/tenants'
+      fullPath: '/tenants/'
+      preLoaderRoute: typeof AdminTenantsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/tenants/$id': {
+      id: '/_admin/tenants/$id'
+      path: '/tenants/$id'
+      fullPath: '/tenants/$id'
+      preLoaderRoute: typeof AdminTenantsIdRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAdminUsersRoute: typeof AdminAdminUsersRoute
+  AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminTenantsIdRoute: typeof AdminTenantsIdRoute
+  AdminTenantsIndexRoute: typeof AdminTenantsIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminUsersRoute: AdminAdminUsersRoute,
+  AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminTenantsIdRoute: AdminTenantsIdRoute,
+  AdminTenantsIndexRoute: AdminTenantsIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
