@@ -36,7 +36,7 @@ api.interceptors.response.use(
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
-    } else if (status >= 500) {
+    } else if (status && status >= 500) {
       toast.error("Une erreur serveur est survenue. Veuillez réessayer.");
     }
     return Promise.reject(error);
