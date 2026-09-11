@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Eye } from "lucide-react";
+import { ChevronDown, Download, Eye, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,34 @@ function AuditLogsPage() {
   const [range, setRange] = useState(initial);
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const response = await api.get("/admin/audit-logs/export", {
+        params: {
+          tenant_id: tenantId === "all" ? "" : tenantId,
+          tool: tool || "",
+          from: range.from,
+          to: range.to,
+        },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `audit-logs-${range.from}-${range.to}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erreur lors de l'export CSV.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const tenantsQuery = useQuery({
     queryKey: ["admin", "tenants", "active-options"],
@@ -146,7 +175,12 @@ function AuditLogsPage() {
           </div>
         </div>
 
-        <Button variant="secondary" disabled>
+        <Button variant="outline" onClick={handleExport} disabled={isExporting}>
+          {isExporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
           Exporter CSV
         </Button>
       </div>

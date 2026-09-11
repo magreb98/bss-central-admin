@@ -214,6 +214,7 @@ function AdminUsersPage() {
                         variant="ghost"
                         size="icon"
                         aria-label="Supprimer"
+                        disabled={user.id === currentUser?.id}
                         onClick={() => setToDelete(user)}
                       >
                         <Trash2 className="text-destructive h-4 w-4" />

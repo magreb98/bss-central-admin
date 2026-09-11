@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Trash2, X } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Check, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import { ActiveBadge, StatusBadge } from "@/components/admin/StatusBadge";
 import { api } from "@/lib/api";
 import { defaultRange, formatDate, formatNumber, formatRelative, formatXAF } from "@/lib/format";
 import { PROVISIONING_STEPS } from "@/lib/types";
-import type { Domain, Tenant, TenantMetrics, TenantUser } from "@/lib/types";
+import type { DailyStat, Domain, Tenant, TenantMetrics, TenantUser } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_admin/tenants/$id")({
@@ -53,6 +54,7 @@ function TenantDetailPage() {
   const [range, setRange] = useState(initialRange);
   const [newDomain, setNewDomain] = useState("");
   const [domainError, setDomainError] = useState<string | null>(null);
+  const [nameEdit, setNameEdit] = useState<string | null>(null);
 
   const tenantQuery = useQuery({
     queryKey: ["admin", "tenants", id],
@@ -66,6 +68,16 @@ function TenantDetailPage() {
     queryKey: ["admin", "tenants", id, "metrics", range],
     queryFn: async () => {
       const { data } = await api.get<{ data: TenantMetrics }>(`/admin/tenants/${id}/metrics`, {
+        params: range,
+      });
+      return data.data;
+    },
+  });
+
+  const dailyQuery = useQuery({
+    queryKey: ["admin", "tenants", id, "daily", range],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: DailyStat[] }>(`/admin/tenants/${id}/metrics/daily`, {
         params: range,
       });
       return data.data;
@@ -90,6 +102,17 @@ function TenantDetailPage() {
     onSuccess: () => {
       invalidateTenant();
       toast.success("Statut mis à jour.");
+    },
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      await api.patch(`/admin/tenants/${id}`, { name });
+    },
+    onSuccess: () => {
+      invalidateTenant();
+      setNameEdit(null);
+      toast.success("Nom mis à jour.");
     },
   });
 
@@ -127,6 +150,10 @@ function TenantDetailPage() {
 
   const tenant = tenantQuery.data;
   const metrics = metricsQuery.data;
+  const chartData = (dailyQuery.data ?? []).map((d) => ({
+    ...d,
+    label: formatDate(d.date).slice(0, 5),
+  }));
 
   const submitDomain = (event: React.FormEvent) => {
     event.preventDefault();
@@ -136,6 +163,12 @@ function TenantDetailPage() {
     }
     setDomainError(null);
     addDomainMutation.mutate(newDomain);
+  };
+
+  const submitRename = () => {
+    const trimmed = (nameEdit ?? "").trim();
+    if (!trimmed) return;
+    renameMutation.mutate(trimmed);
   };
 
   return (
@@ -151,7 +184,50 @@ function TenantDetailPage() {
         <div className="lg:w-1/3">
           <Card className="lg:sticky lg:top-24">
             <CardHeader className="space-y-2">
-              <CardTitle className="text-lg">{tenant?.name ?? "—"}</CardTitle>
+              <CardTitle className="text-lg">
+                {nameEdit !== null ? (
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      value={nameEdit}
+                      onChange={(e) => setNameEdit(e.target.value)}
+                      className="h-8 text-sm"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") submitRename();
+                        if (e.key === "Escape") setNameEdit(null);
+                      }}
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 shrink-0"
+                      onClick={submitRename}
+                      disabled={renameMutation.isPending}
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => setNameEdit(null)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span>{tenant?.name ?? "—"}</span>
+                    <button
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Modifier le nom"
+                      onClick={() => setNameEdit(tenant?.name ?? "")}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </CardTitle>
               {tenant && <StatusBadge status={tenant.status} />}
               <p className="text-muted-foreground text-sm">
                 Créé le {formatDate(tenant?.created_at)}
@@ -284,6 +360,47 @@ function TenantDetailPage() {
               <p className="text-muted-foreground text-sm">
                 Dernière activité : {formatDate(metrics?.last_activity_date)}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Activité quotidienne — CA (XAF)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-52 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="caGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={12}
+                      allowDecimals={false}
+                      tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))}
+                    />
+                    <Tooltip
+                      formatter={(value: number) => [formatXAF(value), "CA"]}
+                      labelFormatter={(label: string) => `Le ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="total_including_tax"
+                      stroke="#f97316"
+                      strokeWidth={2}
+                      fill="url(#caGradient)"
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
