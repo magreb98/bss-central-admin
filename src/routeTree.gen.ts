@@ -13,7 +13,11 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminIndexRouteImport } from './routes/_admin/index'
 import { Route as AdminAdminUsersRouteImport } from './routes/_admin/admin-users'
+import { Route as AdminAnalyticsRouteImport } from './routes/_admin/analytics'
 import { Route as AdminAuditLogsRouteImport } from './routes/_admin/audit-logs'
+import { Route as AdminMonitoringRouteImport } from './routes/_admin/monitoring'
+import { Route as AdminProfilRouteImport } from './routes/_admin/profil'
+import { Route as AdminSettingsRouteImport } from './routes/_admin/settings'
 import { Route as AdminTenantsIndexRouteImport } from './routes/_admin/tenants/index'
 import { Route as AdminTenantsIdRouteImport } from './routes/_admin/tenants/$id'
 
@@ -36,9 +40,29 @@ const AdminAdminUsersRoute = AdminAdminUsersRouteImport.update({
   path: '/admin-users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
   id: '/audit-logs',
   path: '/audit-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMonitoringRoute = AdminMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfilRoute = AdminProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
@@ -56,14 +80,22 @@ export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/login': typeof LoginRoute
   '/admin-users': typeof AdminAdminUsersRoute
+  '/analytics': typeof AdminAnalyticsRoute
   '/audit-logs': typeof AdminAuditLogsRoute
+  '/monitoring': typeof AdminMonitoringRoute
+  '/profil': typeof AdminProfilRoute
+  '/settings': typeof AdminSettingsRoute
   '/tenants/$id': typeof AdminTenantsIdRoute
   '/tenants/': typeof AdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/admin-users': typeof AdminAdminUsersRoute
+  '/analytics': typeof AdminAnalyticsRoute
   '/audit-logs': typeof AdminAuditLogsRoute
+  '/monitoring': typeof AdminMonitoringRoute
+  '/profil': typeof AdminProfilRoute
+  '/settings': typeof AdminSettingsRoute
   '/': typeof AdminIndexRoute
   '/tenants/$id': typeof AdminTenantsIdRoute
   '/tenants': typeof AdminTenantsIndexRoute
@@ -73,7 +105,11 @@ export interface FileRoutesById {
   '/_admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/_admin/admin-users': typeof AdminAdminUsersRoute
+  '/_admin/analytics': typeof AdminAnalyticsRoute
   '/_admin/audit-logs': typeof AdminAuditLogsRoute
+  '/_admin/monitoring': typeof AdminMonitoringRoute
+  '/_admin/profil': typeof AdminProfilRoute
+  '/_admin/settings': typeof AdminSettingsRoute
   '/_admin/': typeof AdminIndexRoute
   '/_admin/tenants/$id': typeof AdminTenantsIdRoute
   '/_admin/tenants/': typeof AdminTenantsIndexRoute
@@ -84,14 +120,22 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin-users'
+    | '/analytics'
     | '/audit-logs'
+    | '/monitoring'
+    | '/profil'
+    | '/settings'
     | '/tenants/$id'
     | '/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/admin-users'
+    | '/analytics'
     | '/audit-logs'
+    | '/monitoring'
+    | '/profil'
+    | '/settings'
     | '/'
     | '/tenants/$id'
     | '/tenants'
@@ -100,7 +144,11 @@ export interface FileRouteTypes {
     | '/_admin'
     | '/login'
     | '/_admin/admin-users'
+    | '/_admin/analytics'
     | '/_admin/audit-logs'
+    | '/_admin/monitoring'
+    | '/_admin/profil'
+    | '/_admin/settings'
     | '/_admin/'
     | '/_admin/tenants/$id'
     | '/_admin/tenants/'
@@ -141,11 +189,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/analytics': {
+      id: '/_admin/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/audit-logs': {
       id: '/_admin/audit-logs'
       path: '/audit-logs'
       fullPath: '/audit-logs'
       preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/monitoring': {
+      id: '/_admin/monitoring'
+      path: '/monitoring'
+      fullPath: '/monitoring'
+      preLoaderRoute: typeof AdminMonitoringRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/profil': {
+      id: '/_admin/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof AdminProfilRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/settings': {
+      id: '/_admin/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/tenants/': {
@@ -167,7 +243,11 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAdminUsersRoute: typeof AdminAdminUsersRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminMonitoringRoute: typeof AdminMonitoringRoute
+  AdminProfilRoute: typeof AdminProfilRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTenantsIdRoute: typeof AdminTenantsIdRoute
   AdminTenantsIndexRoute: typeof AdminTenantsIndexRoute
@@ -175,7 +255,11 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminUsersRoute: AdminAdminUsersRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminMonitoringRoute: AdminMonitoringRoute,
+  AdminProfilRoute: AdminProfilRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminTenantsIdRoute: AdminTenantsIdRoute,
   AdminTenantsIndexRoute: AdminTenantsIndexRoute,

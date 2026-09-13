@@ -11,6 +11,10 @@ const MAP: Record<TenantStatus, { label: string; className: string }> = {
     label: "En provisionnement",
     className: "bg-warning/10 text-warning border-warning/30",
   },
+  archive: {
+    label: "Archivé",
+    className: "bg-muted text-muted-foreground border-border",
+  },
 };
 
 export function StatusBadge({ status }: { status: TenantStatus }) {

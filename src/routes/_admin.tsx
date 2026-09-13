@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminSidebar, MobileMenuButton } from "@/components/admin/AdminSidebar";
 import { getToken } from "@/lib/api";
 
 export const Route = createFileRoute("/_admin")({
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_admin")({
 function AdminLayout() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!getToken()) {
@@ -24,8 +25,14 @@ function AdminLayout() {
 
   return (
     <div className="bg-background min-h-screen">
-      <AdminSidebar />
-      <main className="ml-60 px-8 py-6">
+      <AdminSidebar
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
+      <main className="px-4 py-6 lg:ml-60 lg:px-8">
+        <div className="mb-4 lg:hidden">
+          <MobileMenuButton onClick={() => setSidebarOpen(true)} />
+        </div>
         <Outlet />
       </main>
     </div>

@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueries } from "@tanstack/react-query";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Building2, CircleDollarSign, ShoppingCart, TrendingUp } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -13,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { KpiCard } from "@/components/admin/KpiCard";
 import { api } from "@/lib/api";
 import { defaultRange, formatDate, formatNumber, formatXAF } from "@/lib/format";
 import type { DailyStat, PlatformStats, Tenant } from "@/lib/types";
@@ -34,32 +34,6 @@ export const Route = createFileRoute("/_admin/")({
   }),
   component: DashboardPage,
 });
-
-function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-  tone: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between pt-6">
-        <div>
-          <p className="text-muted-foreground text-sm">{label}</p>
-          <p className="text-foreground mt-1 text-2xl font-semibold">{value}</p>
-        </div>
-        <span className={`rounded-xl p-3 ${tone}`}>
-          <Icon className="h-5 w-5" />
-        </span>
-      </CardContent>
-    </Card>
-  );
-}
 
 function DashboardPage() {
   const range = defaultRange(30);

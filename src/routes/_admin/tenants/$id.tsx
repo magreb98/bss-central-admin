@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Check, Loader2, Pencil, Trash2, X } from "lucide-react";
+import { Check, Loader2, LogIn, Pencil, Power, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrentAdmin } from "@/hooks/use-admin-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,8 @@ const DOMAIN_REGEX = /^[a-z0-9][a-z0-9\-.]+\.[a-z]{2,}$/;
 function TenantDetailPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
+  const { data: currentAdmin } = useCurrentAdmin();
+  const isSuperAdmin = currentAdmin?.is_super_admin ?? false;
   const initialRange = defaultRange(30);
   const [range, setRange] = useState(initialRange);
   const [newDomain, setNewDomain] = useState("");
@@ -146,6 +149,29 @@ function TenantDetailPage() {
       invalidateTenant();
       toast.success("Domaine supprimé.");
     },
+  });
+
+  const toggleUserMutation = useMutation({
+    mutationFn: async ({ userId, active }: { userId: string; active: boolean }) => {
+      await api.patch(`/admin/tenants/${id}/users/${userId}`, { active });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "tenants", id, "users"] });
+      toast.success("Statut utilisateur mis à jour.");
+    },
+  });
+
+  const impersonateMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{ data: { token: string; user: { name: string }; tenant: { name: string } } }>(`/admin/tenants/${id}/impersonate`);
+      return data.data;
+    },
+    onSuccess: (result) => {
+      const url = `${import.meta.env["VITE_POS_URL"] ?? "http://localhost:5174"}?token=${result.token}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Session ouverte pour ${result.user.name} (${result.tenant.name}).`);
+    },
+    onError: () => toast.error("Impossible de démarrer la session d'impersonnification."),
   });
 
   const tenant = tenantQuery.data;
@@ -299,16 +325,33 @@ function TenantDetailPage() {
               <Separator />
 
               {tenant && (
-                <Button
-                  className="w-full"
-                  variant={tenant.status === "actif" ? "destructive" : "default"}
-                  disabled={statusMutation.isPending}
-                  onClick={() =>
-                    statusMutation.mutate(tenant.status === "actif" ? "suspendu" : "actif")
-                  }
-                >
-                  {tenant.status === "actif" ? "Suspendre ce compte" : "Réactiver ce compte"}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full"
+                    variant={tenant.status === "actif" ? "destructive" : "default"}
+                    disabled={statusMutation.isPending}
+                    onClick={() =>
+                      statusMutation.mutate(tenant.status === "actif" ? "suspendu" : "actif")
+                    }
+                  >
+                    {tenant.status === "actif" ? "Suspendre ce compte" : "Réactiver ce compte"}
+                  </Button>
+                  {isSuperAdmin && (
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      disabled={impersonateMutation.isPending || tenant.status !== "actif"}
+                      onClick={() => impersonateMutation.mutate()}
+                    >
+                      {impersonateMutation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogIn className="mr-2 h-4 w-4" />
+                      )}
+                      Connexion POS
+                    </Button>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -417,6 +460,7 @@ function TenantDetailPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Dernière connexion</TableHead>
+                    <TableHead className="w-10" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -434,6 +478,21 @@ function TenantDetailPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {formatRelative(user.last_connected_at)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={user.active ? "Désactiver" : "Activer"}
+                          disabled={toggleUserMutation.isPending}
+                          onClick={() =>
+                            toggleUserMutation.mutate({ userId: user.id, active: !user.active })
+                          }
+                        >
+                          <Power
+                            className={`h-4 w-4 ${user.active ? "text-destructive" : "text-success"}`}
+                          />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

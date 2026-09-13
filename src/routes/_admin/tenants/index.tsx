@@ -41,7 +41,7 @@ import type { Paginated, Tenant, TenantStatus } from "@/lib/types";
 
 const searchSchema = z.object({
   search: z.string().optional(),
-  status: z.enum(["actif", "suspendu", "provisionning"]).optional(),
+  status: z.enum(["actif", "suspendu", "provisionning", "archive"]).optional(),
   sort: z.enum(["created_at", "name", "status", "provisioning_step"]).default("created_at"),
   order: z.enum(["asc", "desc"]).default("desc"),
   page: z.number().default(1),

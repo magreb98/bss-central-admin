@@ -1,4 +1,4 @@
-export type TenantStatus = "actif" | "suspendu" | "provisionning";
+export type TenantStatus = "actif" | "suspendu" | "provisionning" | "archive";
 
 export interface Domain {
   id: string;
@@ -49,6 +49,7 @@ export interface AdminUser {
   name: string;
   email: string;
   active: boolean;
+  is_super_admin: boolean;
   last_connected_at: string | null;
   created_at: string;
 }
@@ -76,6 +77,68 @@ export interface AuditLog {
 export interface Paginated<T> {
   data: T[];
   meta: { total: number; current_page: number; per_page: number; last_page: number };
+}
+
+export interface GrowthPoint {
+  month: string;
+  label: string;
+  new_tenants: number;
+  active_tenants: number;
+}
+
+export interface RevenuePoint {
+  month: string;
+  label: string;
+  revenue: number;
+  sales: number;
+}
+
+export interface AnalyticsGrowth {
+  series: GrowthPoint[];
+  summary: {
+    total_active: number;
+    total_suspended: number;
+    growth_rate_pct: number;
+    new_this_month: number;
+  };
+}
+
+export interface AnalyticsRevenue {
+  series: RevenuePoint[];
+  comparison: {
+    current: { from: string; to: string; revenue: number; sales: number };
+    previous: { from: string; to: string; revenue: number; sales: number };
+    revenue_growth_pct: number;
+    sales_growth_pct: number;
+  };
+}
+
+export interface HealthCheck {
+  status: "ok" | "warning" | "info" | "error";
+  message: string;
+  [key: string]: unknown;
+}
+
+export interface SystemHealth {
+  status: "healthy" | "degraded";
+  checks: Record<string, HealthCheck>;
+  checked_at: string;
+}
+
+export interface PlatformSettings {
+  platform_name: string;
+  contact_email: string;
+  max_tenants: number;
+  maintenance_mode: boolean;
+  provisioning_auto: boolean;
+  support_url: string;
+}
+
+export interface ImpersonationToken {
+  token: string;
+  expires_at: string;
+  user: { id: string; name: string; email: string };
+  tenant: { id: string; name: string };
 }
 
 export const PROVISIONING_STEPS = [
